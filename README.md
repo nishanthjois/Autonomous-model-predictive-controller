@@ -4,8 +4,6 @@ Self-Driving Car Engineer Nanodegree Program
 ---
 
 ### MPC algorithm:
-Ref: Udacity MPC classroom notes
-
 #### Setup:
 - Define the length of the trajectory, N, and duration of each timestep, dt.
 - Define vehicle dynamics and actuator limitations along with other constraints.
@@ -17,20 +15,12 @@ Ref: Udacity MPC classroom notes
 - We apply the first control input to the vehicle.
 - Back to first step.
 
-#### Fields:
-
-- ptsx (Array) - The global x positions of the waypoints.
-- ptsy (Array) - The global y positions of the waypoints. This corresponds to the z coordinate in Unity since y is the up-down direction.
-- psi (float) - The orientation of the vehicle in radians converted from the Unity format to the standard format expected in most mathemetical functions (more details below).
-- psi_unity (float) - The orientation of the vehicle in radians. This is an orientation commonly used in navigation.
-- x (float) - The global x position of the vehicle.
-- y (float) - The global y position of the vehicle.
-- steering_angle (float) - The current steering angle in radians.
-- throttle (float) - The current throttle value [-1, 1].
-- speed (float) - The current velocity in mph.
-
 #### MPC.cpp file details
 
+#### Variables: 
+
+#### 1. 
+The N and dt parameters was defined to handle the latency of 100ms used in simulation
 - N is the number of timesteps the model predicts ahead. Higher N means further the prediction.
 - dt is the length of each timestep i.e,. it is the frequency in which steering and accelation re-evaluates. 
 - Below values are best output of multiple experiments I did:
@@ -41,57 +31,107 @@ size_t N = 10; //20 //50 // Higher N causes to drift the car of track very soon
 double dt = 0.1; // 0.01, .03
 ```
 
+#### 2.
 // This is the length from front to CoG that has a similar radius.
 ```
 const double Lf = 2.67;
 ```
 
-// Both the reference cross track and orientation errors are 0.
-// The reference velocity is set to 50 mph.
+#### 3.
+Both the reference cross track and orientation errors are 0.
+The reference velocity is set to 50 mph.
 ```
 double ref_cte = 0;
 double ref_epsi = 0;
 double ref_v = 50; //40
 ```
 
-// Played around with these coeff to get best driving expereince 
+Played around with these coeff to get best driving expereince 
+#### 4.
+
 ```
-constexpr double coeff_cte = 1.;
-constexpr double coeff_epsi = 1.;
-constexpr double coeff_v = 1.;
+constexpr double coeff_cte = 1.; // cross track error
+constexpr double coeff_epsi = 1.; // angle
+constexpr double coeff_v = 1.; // velocity
 ```
+
+#### 5.
 Minimizes the use of steering. With value as 1 - the car dives into river near second turn
 ```
 constexpr double coeff_penalize_delta = 100.;  //  Best = 100,200.
 ```
 
+#### 6.
 Minimizes the use of acceleration. With value as 100 - car drives smoothly and accurately but was steady and slow at 25 kmph
 ```
 constexpr double coeff_penalize_a = 20.; 
 ```
 
+#### 7.
 Increases smoothness driving (smoothness steering) 
 ```
 constexpr double coeff_derivative_delta = 10.; // / Best = 10, even 100 works but 10 seems more smooth
 ```
 
+#### 8.
 Increases smoothness of acceleration
 ```
 constexpr double coeff_derivative_a = 100.;     // Best = 10
 ```
 
-// The solver takes all the state variables and actuator
-// variables in a singular vector. Thus, we should to establish
-// when one variable starts and another ends to make our lifes easier.
-size_t x_start = 0;
-size_t y_start = x_start + N;
-size_t psi_start = y_start + N;
-size_t v_start = psi_start + N;
-size_t cte_start = v_start + N;
-size_t epsi_start = cte_start + N;
-size_t delta_start = epsi_start + N;
-size_t a_start = delta_start + N - 1;
+#### Definition: 
+### Define cost of MPC:
 
+- Reference state cost - influences car to follow a reference (CTE) , orienation and velocity
+```    
+    for (int i = 0; i < N; i++) {
+      fg[0] += coeff_cte * CppAD::pow(vars[cte_start +  i] - ref_cte, 2); 
+      fg[0] += coeff_epsi * CppAD::pow(vars[epsi_start + i] - ref_epsi, 2);
+      fg[0] += coeff_v * CppAD::pow(vars[v_start +    i] - ref_v, 2);
+    }
+```
+- Minimize the use of actuators - Steering and Accelerator.
+
+```
+    // 
+    for (int i = 0; i < N - 1; i++) {
+      fg[0] += coeff_penalize_delta * CppAD::pow(vars[delta_start + i], 2);
+      fg[0] += coeff_penalize_a * CppAD::pow(vars[a_start + i], 2);
+    }
+
+```
+- Minimize the value gap between sequential actuations.
+ 
+```  
+    for (int i = 0; i < N - 2; i++) {
+      fg[0] += coeff_derivative_delta * CppAD::pow(vars[delta_start + i + 1] - vars[delta_start + i], 2);
+      fg[0] += coeff_derivative_a * CppAD::pow(vars[a_start + i + 1] - vars[a_start + i], 2);
+    }
+```
+
+### Main.cpp: 
+- The MPC model was used in main.cpp#L72. 
+- Reference way points provided by simulator are converted to vehicle coordinate system (from world space to car space)
+- Converted reference points were used to fit a polynomial
+
+#### Fields used in main.cpp:
+- ptsx (Array) - The global x positions of the waypoints.
+- ptsy (Array) - The global y positions of the waypoints. This corresponds to the z coordinate in Unity since y is the up-down direction.
+- psi (float) - The orientation of the vehicle in radians converted from the Unity format to the standard format expected in most mathemetical functions (more details below).
+- psi_unity (float) - The orientation of the vehicle in radians. This is an orientation commonly used in navigation.
+- x (float) - The global x position of the vehicle.
+- y (float) - The global y position of the vehicle.
+- steering_angle (float) - The current steering angle in radians.
+- throttle (float) - The current throttle value [-1, 1].
+- speed (float) - The current velocity in mph.
+
+
+Most of the code in main.cpp were from classroom questions:
+- Find CTE: Ref: https://github.com/udacity/CarND-MPC-Quizzes/blob/master/polyfit/solution/main.cpp#L47
+
+- Find orientation error: Ref: https://github.com/udacity/CarND-MPC-Quizzes/blob/master/mpc_to_line/solution/MPC.cpp#L323
+
+- Get data from MPC: Ref: https://github.com/udacity/CarND-MPC-Quizzes/blob/master/mpc_to_line/solution/MPC.cpp#L342
 
 ---------
 
@@ -129,7 +169,6 @@ size_t a_start = delta_start + N - 1;
 
 
 ## Basic Build Instructions
-
 
 1. Clone this repo.
 2. Make a build directory: `mkdir build && cd build`
