@@ -19,8 +19,7 @@ Self-Driving Car Engineer Nanodegree Program
 
 #### Variables: 
 
-#### 1. 
-The N and dt parameters was defined to handle the latency of 100ms used in simulation
+#### 1. The N and dt parameters was defined to handle the latency of 100ms used in simulation
 - N is the number of timesteps the model predicts ahead. Higher N means further the prediction.
 - dt is the length of each timestep i.e,. it is the frequency in which steering and accelation re-evaluates. 
 - Below values are best output of multiple experiments I did:
@@ -31,15 +30,12 @@ size_t N = 10; //20 //50 // Higher N causes to drift the car of track very soon
 double dt = 0.1; // 0.01, .03
 ```
 
-#### 2.
-This is the length from front to CoG that has a similar radius.
+#### 2.This is the length from front to CoG that has a similar radius.
 ```
 const double Lf = 2.67;
 ```
 
-#### 3.
-Both the reference cross track and orientation errors are 0.
-The reference velocity is set to 50 mph.
+#### 3. Both the reference cross track and orientation errors are 0. The reference velocity is set to 50 mph.
 ```
 double ref_cte = 0;
 double ref_epsi = 0;
@@ -55,32 +51,27 @@ constexpr double coeff_epsi = 1.; // angle
 constexpr double coeff_v = 1.; // velocity
 ```
 
-#### 5.
-Minimizes the use of steering. With value as 1 - the car dives into river near second turn
+#### 5. Minimizes the use of steering. With value as 1 - the car dives into river near second turn
 ```
 constexpr double coeff_penalize_delta = 100.;  //  Best = 100,200.
 ```
 
-#### 6.
-Minimizes the use of acceleration. With value as 100 - car drives smoothly and accurately but was steady and slow at 25 kmph
+#### 6. Minimizes the use of acceleration. With value as 100 - car drives smoothly and accurately but was steady and slow at 25 kmph
 ```
 constexpr double coeff_penalize_a = 20.; 
 ```
 
-#### 7.
-Increases smoothness driving (smoothness steering) 
+#### 7. Increases smoothness driving (smoothness steering) 
 ```
 constexpr double coeff_derivative_delta = 10.; // / Best = 10, even 100 works but 10 seems more smooth
 ```
 
-#### 8.
-Increases smoothness of acceleration
+#### 8. Increases smoothness of acceleration
 ```
 constexpr double coeff_derivative_a = 100.;     // Best = 10
 ```
 
-#### Definition: 
-### Define cost of MPC:
+#### Define cost of MPC: 
 
 - Reference state cost - influences car to follow a reference (CTE) , orienation and velocity
 ```    
