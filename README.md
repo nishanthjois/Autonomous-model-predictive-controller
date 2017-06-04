@@ -133,6 +133,7 @@ Most of the code in main.cpp were from classroom questions:
 
 - Get data from MPC: Ref: https://github.com/udacity/CarND-MPC-Quizzes/blob/master/mpc_to_line/solution/MPC.cpp#L342
 
+Project output video: https://youtu.be/LCD1_OBZSG8
 ---------
 
 ## Dependencies
