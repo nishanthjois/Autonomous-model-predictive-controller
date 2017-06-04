@@ -1,4 +1,4 @@
-# CarND-Controls-MPC
+## MPC - Self driving car
 Self-Driving Car Engineer Nanodegree Program
 
 ---
@@ -133,7 +133,9 @@ Most of the code in main.cpp were from classroom questions:
 
 - Get data from MPC: Ref: https://github.com/udacity/CarND-MPC-Quizzes/blob/master/mpc_to_line/solution/MPC.cpp#L342
 
-Project output video: https://youtu.be/LCD1_OBZSG8
+#### Project output video: 
+https://youtu.be/LCD1_OBZSG8
+
 ---------
 
 ## Dependencies
@@ -239,4 +241,4 @@ that's just a guess.
 
 One last note here: regardless of the IDE used, every submitted project must
 still be compilable with cmake and make./
-# mpc-self-driving-car
+
