@@ -32,7 +32,7 @@ double dt = 0.1; // 0.01, .03
 ```
 
 #### 2.
-// This is the length from front to CoG that has a similar radius.
+This is the length from front to CoG that has a similar radius.
 ```
 const double Lf = 2.67;
 ```
@@ -110,7 +110,7 @@ constexpr double coeff_derivative_a = 100.;     // Best = 10
 ```
 
 ### Main.cpp: 
-- The MPC model was used in main.cpp#L72. 
+- The MPC model was used/initialized in main.cpp. 
 - Reference way points provided by simulator are converted to vehicle coordinate system (from world space to car space)
 - Converted reference points were used to fit a polynomial
 
