@@ -3,6 +3,98 @@ Self-Driving Car Engineer Nanodegree Program
 
 ---
 
+### MPC algorithm:
+Ref: Udacity MPC classroom notes
+
+#### Setup:
+- Define the length of the trajectory, N, and duration of each timestep, dt.
+- Define vehicle dynamics and actuator limitations along with other constraints.
+- Define the cost function.
+
+#### Loop:
+- We pass the current state as the initial state to the model predictive controller.
+- We call the optimization solver. Given the initial state, the solver will return the vector of control inputs that minimizes the cost function. The solver we'll use is called Ipopt.
+- We apply the first control input to the vehicle.
+- Back to first step.
+
+#### Fields:
+
+- ptsx (Array) - The global x positions of the waypoints.
+- ptsy (Array) - The global y positions of the waypoints. This corresponds to the z coordinate in Unity since y is the up-down direction.
+- psi (float) - The orientation of the vehicle in radians converted from the Unity format to the standard format expected in most mathemetical functions (more details below).
+- psi_unity (float) - The orientation of the vehicle in radians. This is an orientation commonly used in navigation.
+- x (float) - The global x position of the vehicle.
+- y (float) - The global y position of the vehicle.
+- steering_angle (float) - The current steering angle in radians.
+- throttle (float) - The current throttle value [-1, 1].
+- speed (float) - The current velocity in mph.
+
+#### MPC.cpp file details
+
+- N is the number of timesteps the model predicts ahead. Higher N means further the prediction.
+- dt is the length of each timestep i.e,. it is the frequency in which steering and accelation re-evaluates. 
+- Below values are best output of multiple experiments I did:
+We set the number of timesteps to 10 and the timestep evaluation frequency or evaluation period to 0.1.
+
+```
+size_t N = 10; //20 //50 // Higher N causes to drift the car of track very soon
+double dt = 0.1; // 0.01, .03
+```
+
+// This is the length from front to CoG that has a similar radius.
+```
+const double Lf = 2.67;
+```
+
+// Both the reference cross track and orientation errors are 0.
+// The reference velocity is set to 50 mph.
+```
+double ref_cte = 0;
+double ref_epsi = 0;
+double ref_v = 50; //40
+```
+
+// Played around with these coeff to get best driving expereince 
+```
+constexpr double coeff_cte = 1.;
+constexpr double coeff_epsi = 1.;
+constexpr double coeff_v = 1.;
+```
+Minimizes the use of steering. With value as 1 - the car dives into river near second turn
+```
+constexpr double coeff_penalize_delta = 100.;  //  Best = 100,200.
+```
+
+Minimizes the use of acceleration. With value as 100 - car drives smoothly and accurately but was steady and slow at 25 kmph
+```
+constexpr double coeff_penalize_a = 20.; 
+```
+
+Increases smoothness driving (smoothness steering) 
+```
+constexpr double coeff_derivative_delta = 10.; // / Best = 10, even 100 works but 10 seems more smooth
+```
+
+Increases smoothness of acceleration
+```
+constexpr double coeff_derivative_a = 100.;     // Best = 10
+```
+
+// The solver takes all the state variables and actuator
+// variables in a singular vector. Thus, we should to establish
+// when one variable starts and another ends to make our lifes easier.
+size_t x_start = 0;
+size_t y_start = x_start + N;
+size_t psi_start = y_start + N;
+size_t v_start = psi_start + N;
+size_t cte_start = v_start + N;
+size_t epsi_start = cte_start + N;
+size_t delta_start = epsi_start + N;
+size_t a_start = delta_start + N - 1;
+
+
+---------
+
 ## Dependencies
 
 * cmake >= 3.5
